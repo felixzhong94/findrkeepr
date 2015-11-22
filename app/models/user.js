@@ -16,7 +16,7 @@ var userSchema = new Schema( {
 	Name: { type: String, default:''},
 	Timestamp: { type: Date, default: Date.now},
 
-	Facebook_Token: { type: String, default:''},
+	Facebook_Token: { type: String, default:'', unique: true},
 	//link to profile pic
 	Classes_Enrolled: [{
 		Class_ID: { type: mongoose.Schema.ObjectId, ref: 'Class'},

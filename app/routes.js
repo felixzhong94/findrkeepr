@@ -63,22 +63,34 @@ module.exports = function(app) {
 
 	// create todo and send back all todos after creation
 	app.post('/api/users', function(req, res) {
-
-		// create a todo, information comes from AJAX request from Angular
-		User.create({
-			Description : req.body.description,
-			Name : req.body.name,
-			//Timestamp : req.body.timestamp,
-			//Classes_Enrolled : req.body.classes,
-			Facebook_Token : req.body.Facebook_Token,	
-			done : false
-		}, function(err, user) {
-			if (err)
-				res.send(err);
-
-			// get and return all the todos after you create another
-			getUsers(res);
+		User.findOne({Facebook_Token:req.body.Facebook_Token},function(err,user){
+			if (!user) {
+   				//console.log("Inserting User");
+				User.create({
+					Description : req.body.description,
+					Name : req.body.name,
+					//Classes_Enrolled : req.body.classes,
+					Facebook_Token : req.body.Facebook_Token,	
+					done : false
+				}, function(err, user) {
+					if (err)
+						res.send(err);
+					res.json({
+						success: true,
+						user
+					});
+				});
+  			
+			} else {
+    				//console.log('User Already Exists');
+				res.json({
+					success: false,
+					message: 'User already exists',
+					user
+				);	
+			}
 		});
+
 
 	});
 
@@ -90,24 +102,58 @@ module.exports = function(app) {
 		});
 	});
 
-
+	app.purge('/api/class', function(req, res) {
+		Classes.remove(function(err, classes) {
+			if (err)
+				res.send(err);
+			getClasses(res);
+		});
+	});
 
 
 	app.post('/api/class', function(req, res) {
+		User.findOne({Facebook_Token:req.body.Facebook_Token},function(err,user){
+			if (!user) {
+				res.json({ 
+					success: false, 
+					message: 'Invalid Facebook_Token'
+				});
+			} else {
+				Classes.create({
+					Creator_id : user._id,
+					Description : req.body.description,
+					Name : req.body.name,
+					done : false
+				}, function(err, classes) {
+					if (err)
+						res.send(err);
+					res.json({
+						success: true,
+						classes
+					});
+				});
+
+			}
+		});
+	});
+
+
+	/*app.post('/api/class', function(req, res) {
 		Classes.create({
 			Creator_id : req.body.creator,
 			Description : req.body.description,
 			Name : req.body.name,
-			Hashcode : req.body.hashcode,
+			//Hashcode : req.body.hashcode,
 			//Timestamp : req.body.timestamp,
 			done : false
 		}, function(err, classes) {
 			if (err)
 				res.send(err);
 
-			getClasses(res);
+			//getClasses(res);
+			res.json(classes);
 		});
-	});
+	});*/
 
 	app.post('/api/enrollment', function(req, res) {
 		Enrollment.create({
