@@ -130,12 +130,12 @@ module.exports = function(app) {
 					if(err)
 						res.send(err);
 					
-					Classes.find({Creator_id: req.params.user_token},function(err, owned) {
+					Classes.find({Creator_ID: req.params.user_token},function(err, owned) {
 						if(err)
 							res.send(err)
 						res.json({
 							success: true,
-							result: result,
+							enrolled: result,
 							owned: owned
 						});
 					});
@@ -143,6 +143,29 @@ module.exports = function(app) {
 			);
 		});
 	});
+
+
+
+	app.get('/api/classmate/:hashcode', function(req, res) {
+		Enrollment.find({Class_ID : req.params.hashcode},function(err, enrollment) {
+			if(err)
+				res.send(err)
+			async.map(enrollment, function(key, next){
+					User.findOne({Facebook_Token: key.Facebook_Token},function (err,result){
+						next(err, result);
+					});
+				}, function (err, result){
+					if(err)
+						res.send(err);
+					res.json({
+						success: true,
+						result: result
+					});
+				}
+			);
+		});
+	});
+
 
 	/*app.post('/api/getEnrolledClass', function(req, res) {
 		Enrollment.find({Facebook_Token : req.body.Facebook_Token},function(err, enrollment) {
@@ -226,7 +249,7 @@ module.exports = function(app) {
 				});
 			} else {
 				Classes.create({
-					Creator_id : req.body.Facebook_Token,
+					Creator_ID : req.body.Facebook_Token,
 					Description : req.body.description,
 					Name : req.body.name,
 					done : false
