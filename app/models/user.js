@@ -17,11 +17,9 @@ var userSchema = new Schema( {
 	Timestamp: { type: Date, default: Date.now},
 
 	Facebook_Token: { type: String, default:'', unique: true},
-	//link to profile pic
-	Classes_Enrolled: [{
-		Class_ID: { type: mongoose.Schema.ObjectId, ref: 'Class'},
-		Team: { type: String, default: ''}
-	}]
-});
+	Classes_Enrolled: { type: String, default: ''},
+	Team: { type: String, default: ''}
+	}
+);
 
 module.exports = mongoose.model('User', userSchema);
