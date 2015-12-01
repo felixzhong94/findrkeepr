@@ -1,7 +1,7 @@
 var User = require('./models/user');
 var Classes = require('./models/class');
 var Enrollment = require('./models/enrollment');
-
+var async = require('async');
 function getUsers(res){
 	User.find(function(err, users) {
 		if (err)
@@ -113,14 +113,34 @@ module.exports = function(app) {
 		});
 	});
 
+
 	app.get('/api/Enrollment/:user_token', function(req, res) {
+		console.log("Hash requested: " + req.params.user_token);
 		Enrollment.find({Facebook_Token : req.params.user_token},function(err, enrollment) {
-			if (err)
+			if(err)
 				res.send(err)
-			res.json({
-				success: true,
-				enrollment
-			});
+
+		
+
+			async.map(enrollment, function(key, next){
+					Classes.findOne({Hashcode: key.Class_ID},function (err,result){
+						next(err, result);
+					});
+				}, function (err, result){
+					if(err)
+						res.send(err);
+					
+					Classes.find({Creator_id: req.params.user_token},function(err, owned) {
+						if(err)
+							res.send(err)
+						res.json({
+							success: true,
+							result: result,
+							owned: owned
+						});
+					});
+				}
+			);
 		});
 	});
 
